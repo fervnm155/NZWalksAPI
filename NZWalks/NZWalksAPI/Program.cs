@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NZWalksAPI.Data;
 using NZWalksAPI.Repositories;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,12 +12,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//CYCLES ERROR SOLUTION IN WALKS CRUD
+builder.Services.AddControllersWithViews().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+
 builder.Services.AddDbContext<NZWalksDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("NZWalks"));
 });
 
 builder.Services.AddScoped<IRegionRepository,RegionRepository>();
+builder.Services.AddScoped<IWalksRepository, WalksRepository>();
 
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
