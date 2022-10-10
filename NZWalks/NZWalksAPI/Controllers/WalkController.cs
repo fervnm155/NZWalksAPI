@@ -81,7 +81,9 @@ namespace NZWalksAPI.Controllers
             var difficulty = await difficultyRepository.GetDifficultyById(newDataWalk.WalkDifficultyId);
             if (region == null || difficulty == null)
             {
-                return BadRequest("invalid RegionId or WalkDifficultyId");
+                ModelState.AddModelError(nameof(newDataWalk), "invalid RegionId or WalkDifficultyId");
+                return BadRequest(ModelState);
+                //return BadRequest("invalid RegionId or WalkDifficultyId");
             }
             var walk = new Walk()
             {
