@@ -61,8 +61,13 @@ namespace NZWalksAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddRegion(Models.DTOs.AddRegionDto newRegion)
+        public async Task<IActionResult> AddRegion(Models.DTOs.AlterRegionDto newRegion)
         {
+            //model validation
+            if (!ValidateRegionModel(newRegion))
+            {
+                return BadRequest(ModelState);
+            }
 
             var region = new Models.Domain.Region()
             {
@@ -85,13 +90,22 @@ namespace NZWalksAPI.Controllers
         public async Task<IActionResult> DeleteRegion(Guid id)
         {
             var region=await regionRepository.DeleteRegion(id);
+            if (region == null)
+            {
+                return BadRequest(ModelState);
+            }
             return CreatedAtAction(nameof(GetRegionById), new { id = region.Id }, region);
         }
 
         [HttpPut]
         [Route("{id:guid}")]
-        public async Task<IActionResult> UpdateRegion([FromRoute] Guid id, [FromBody] Models.DTOs.AddRegionDto newDataRegion)
+        public async Task<IActionResult> UpdateRegion([FromRoute] Guid id, [FromBody] Models.DTOs.AlterRegionDto newDataRegion)
         {
+            //model validation
+            if (!ValidateRegionModel(newDataRegion))
+            {
+                return BadRequest(ModelState);
+            }
             var region = new Models.Domain.Region()
             {
                 Id = id,
@@ -106,10 +120,53 @@ namespace NZWalksAPI.Controllers
             region = await regionRepository.UpdateRegion(region);
             if(region == null)
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
             var updatedRegion = mapper.Map<Models.DTOs.RegionDto>(region);
             return CreatedAtAction(nameof(GetRegionById), new { id = updatedRegion.Id }, updatedRegion);
         }
+
+        #region Private methods
+
+        private bool ValidateRegionModel(Models.DTOs.AlterRegionDto regionData)
+        {
+            if (regionData == null)
+            {
+                ModelState.AddModelError(nameof(regionData), "Add region data is required.");
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(regionData.Code))
+            {
+                ModelState.AddModelError(nameof(regionData.Code), "The code can't be null or empty or white space.");
+            }
+            if (string.IsNullOrWhiteSpace(regionData.Name))
+            {
+                ModelState.AddModelError(nameof(regionData.Name), "The area can't be null or empty or white space.");
+            }
+            if (regionData.Area <= 0)
+            {
+                ModelState.AddModelError(nameof(regionData.Area), "The area can't be less or equal than 0.");
+            }
+            if (regionData.Lat <= 0)
+            {
+                ModelState.AddModelError(nameof(regionData.Lat), "The lat can't be less or equal than 0.");
+            }
+            if (regionData.Long <= 0)
+            {
+                ModelState.AddModelError(nameof(regionData.Long), "The long can't be less or equal than 0.");
+            }
+            if (regionData.Population < 0)
+            {
+                ModelState.AddModelError(nameof(regionData.Population), "The population can't be less than 0.");
+            }
+
+            if (ModelState.ErrorCount > 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+        #endregion
     }
 }
