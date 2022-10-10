@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using NZWalksAPI.Models.Domain;
 using NZWalksAPI.Models.DTOs;
 using NZWalksAPI.Repositories;
 
@@ -22,7 +23,7 @@ namespace NZWalksAPI.Controllers
         public async Task<IActionResult> GetAllWalkDiff()
         {
             var walkDiff = await walkDifficultyRepository.GetAllWalksDifficulties();
-            var walkDiffDto = mapper.Map<List<Models.Domain.WalkDifficulty>>(walkDiff);
+            var walkDiffDto = mapper.Map<List<WalkDifficulty>>(walkDiff);
             return Ok(walkDiffDto);
         }
 
@@ -32,19 +33,14 @@ namespace NZWalksAPI.Controllers
         public async Task<IActionResult> GetWalkDiffById([FromRoute] Guid id)
         {
             var walkDiff = await walkDifficultyRepository.GetDifficultyById(id);
-            var walkDiffDto=mapper.Map<Models.Domain.WalkDifficulty>(walkDiff);
+            var walkDiffDto=mapper.Map<WalkDifficulty>(walkDiff);
             return Ok(walkDiffDto);
         }
 
         [HttpPost]
         public async Task<IActionResult> AddDifficulty([FromBody] AlterWalkDifficultyDto newDifficulty)
         {
-            if (!ValidateDifficultyData(newDifficulty))
-            {
-                return BadRequest(ModelState);
-            }
-
-            var difficulty = new Models.Domain.WalkDifficulty()
+            var difficulty = new WalkDifficulty()
             {
                 Code = newDifficulty.Code
             };
@@ -58,12 +54,7 @@ namespace NZWalksAPI.Controllers
         [Route("{id:guid}")]
         public async Task<IActionResult> UpdateDifficulty([FromRoute] Guid id, [FromBody] AlterWalkDifficultyDto diffData)
         {
-            if (!ValidateDifficultyData(diffData))
-            {
-                return BadRequest(ModelState);
-            }
-
-            var difficulty = new Models.Domain.WalkDifficulty()
+            var difficulty = new WalkDifficulty()
             {
                 Id = id,
                 Code = diffData.Code
@@ -86,26 +77,5 @@ namespace NZWalksAPI.Controllers
             var difficulty = await walkDifficultyRepository.DeleteDifficulty(id);
             return CreatedAtAction(nameof(GetWalkDiffById), new { id = difficulty.Id }, difficulty);
         }
-
-        #region
-        public bool ValidateDifficultyData(AlterWalkDifficultyDto diffData)
-        {
-            if (diffData == null)
-            {
-                ModelState.AddModelError(nameof(diffData), "Add walk difficulty data is required.");
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(diffData.Code))
-            {
-                ModelState.AddModelError(nameof(diffData.Code), "The code can't be null or empty or white space.");
-            }
-            if (ModelState.ErrorCount > 0)
-            {
-                return false;
-            }
-
-            return true;
-        }
-        #endregion
     }
 }

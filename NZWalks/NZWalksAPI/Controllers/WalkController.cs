@@ -44,11 +44,19 @@ namespace NZWalksAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> AddWalk([FromBody] AlterWalkDto newWalk)
         {
-            if (!(await ValidateWalkModel(newWalk)))
+            //if (!await AlterWalkDtoIdsValidator.ValidateWalkModel(newWalk))
+            //{
+            //    return BadRequest(ModelState);
+            //}
+            var region = await regionRepository.GetById(newWalk.RegionId);
+            var difficulty = await difficultyRepository.GetDifficultyById(newWalk.WalkDifficultyId);
+            if (region == null || difficulty == null)
             {
+                ModelState.AddModelError(nameof(newWalk), "invalid RegionId or WalkDifficultyId");
                 return BadRequest(ModelState);
+                //return BadRequest("invalid RegionId or WalkDifficultyId");
             }
-            var walk = new Models.Domain.Walk()
+            var walk = new Walk()
             {
                 Name = newWalk.Name,
                 Length = newWalk.Length,
@@ -57,19 +65,25 @@ namespace NZWalksAPI.Controllers
             };
 
             walk = await walksRepository.AddWalk(walk);
-            var addedwalk = mapper.Map<Models.DTOs.WalkDto>(walk);
+            var addedwalk = mapper.Map<WalkDto>(walk);
             return CreatedAtAction(nameof(GetWalkById), new { id = addedwalk.Id }, addedwalk);
         }
 
         [HttpPut]
         [Route("{id:guid}")]
-        public async Task<IActionResult> ActionResult([FromRoute] Guid id, [FromBody] Models.DTOs.AlterWalkDto newDataWalk)
+        public async Task<IActionResult> ActionResult([FromRoute] Guid id, [FromBody] AlterWalkDto newDataWalk)
         {
-            if (!(await ValidateWalkModel(newDataWalk)))
+            //if (!await AlterWalkDtoIdsValidator.ValidateWalkModel(newDataWalk))
+            //{
+            //    return BadRequest(ModelState);
+            //}
+            var region = await regionRepository.GetById(newDataWalk.RegionId);
+            var difficulty = await difficultyRepository.GetDifficultyById(newDataWalk.WalkDifficultyId);
+            if (region == null || difficulty == null)
             {
-                return BadRequest(ModelState);
+                return BadRequest("invalid RegionId or WalkDifficultyId");
             }
-            var walk = new Models.Domain.Walk()
+            var walk = new Walk()
             {
                 Id = id,
                 Name = newDataWalk.Name,
@@ -84,7 +98,7 @@ namespace NZWalksAPI.Controllers
                 return BadRequest();
             }
 
-            var updatedWalk=mapper.Map<Models.DTOs.WalkDto>(walk);
+            var updatedWalk=mapper.Map<WalkDto>(walk);
             return CreatedAtAction(nameof(GetWalkById), new { id = updatedWalk.Id }, updatedWalk);
         }
 
@@ -96,39 +110,26 @@ namespace NZWalksAPI.Controllers
             return CreatedAtAction(nameof(GetWalkById), new { id = walk.Id }, walk);
         }
 
-        #region Private Methods
+        //#region Private Methods
 
-        public async Task<bool> ValidateWalkModel(AlterWalkDto walkData)
-        {
-            if (walkData == null)
-            {
-                ModelState.AddModelError(nameof(walkData), "Walk data is required.");
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(walkData.Name))
-            {
-                ModelState.AddModelError(nameof(walkData.Name), "The name can't be null or empty or white space.");
-            }
-            if (walkData.Length <= 0)
-            {
-                ModelState.AddModelError(nameof(walkData.Length), "The length can't be less or equal than 0.");
-            }
-            var region = await regionRepository.GetById(walkData.RegionId);
-            if (region == null)
-            {
-                ModelState.AddModelError(nameof(walkData.RegionId), "Invalid region");
-            }
-            var difficulty = await difficultyRepository.GetDifficultyById(walkData.WalkDifficultyId);
-            if (difficulty == null)
-            {
-                ModelState.AddModelError(nameof(walkData.WalkDifficultyId), "Invalid walk difficulty");
-            }
-            if (ModelState.ErrorCount > 0)
-            {
-                return false;
-            }
-            return true;
-        }
-        #endregion
+        //public async Task<bool> ValidateWalkModel(AlterWalkDto walkData)
+        //{
+        //    var region = await regionRepository.GetById(walkData.RegionId);
+        //    if (region == null)
+        //    {
+        //        ModelState.AddModelError(nameof(walkData.RegionId), "Invalid region");
+        //    }
+        //    var difficulty = await difficultyRepository.GetDifficultyById(walkData.WalkDifficultyId);
+        //    if (difficulty == null)
+        //    {
+        //        ModelState.AddModelError(nameof(walkData.WalkDifficultyId), "Invalid walk difficulty");
+        //    }
+        //    if (ModelState.ErrorCount > 0)
+        //    {
+        //        return false;
+        //    }
+        //    return true;
+        //}
+        //#endregion
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using NZWalksAPI.Models.Domain;
+using NZWalksAPI.Models.DTOs;
 using NZWalksAPI.Repositories;
 
 namespace NZWalksAPI.Controllers
@@ -39,7 +40,7 @@ namespace NZWalksAPI.Controllers
             //    regionsDto.Add(regionDto);
             //});
 
-            var regionsDto = mapper.Map<List<Models.DTOs.RegionDto>>(regions);
+            var regionsDto = mapper.Map<List<RegionDto>>(regions);
 
             return Ok(regionsDto);
         }
@@ -56,18 +57,14 @@ namespace NZWalksAPI.Controllers
                 return NotFound();
             }
 
-            var regionDto = mapper.Map<Models.DTOs.RegionDto>(region);
+            var regionDto = mapper.Map<RegionDto>(region);
             return Ok(regionDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddRegion(Models.DTOs.AlterRegionDto newRegion)
+        public async Task<IActionResult> AddRegion(AlterRegionDto newRegion)
         {
-            //model validation
-            if (!ValidateRegionModel(newRegion))
-            {
-                return BadRequest(ModelState);
-            }
+            //model validation using fluent validation
 
             var region = new Models.Domain.Region()
             {
@@ -80,7 +77,7 @@ namespace NZWalksAPI.Controllers
             };
 
             region = await regionRepository.AddRegion(region);
-            var addedRegion = mapper.Map<Models.DTOs.RegionDto>(region);
+            var addedRegion = mapper.Map<RegionDto>(region);
             return CreatedAtAction(nameof(GetRegionById), new { id = addedRegion.Id }, addedRegion);
 
         }
@@ -99,14 +96,11 @@ namespace NZWalksAPI.Controllers
 
         [HttpPut]
         [Route("{id:guid}")]
-        public async Task<IActionResult> UpdateRegion([FromRoute] Guid id, [FromBody] Models.DTOs.AlterRegionDto newDataRegion)
+        public async Task<IActionResult> UpdateRegion([FromRoute] Guid id, [FromBody] AlterRegionDto newDataRegion)
         {
-            //model validation
-            if (!ValidateRegionModel(newDataRegion))
-            {
-                return BadRequest(ModelState);
-            }
-            var region = new Models.Domain.Region()
+            //model validation using fluent validation
+            
+            var region = new Region()
             {
                 Id = id,
                 Name = newDataRegion.Name,
@@ -122,51 +116,8 @@ namespace NZWalksAPI.Controllers
             {
                 return BadRequest(ModelState);
             }
-            var updatedRegion = mapper.Map<Models.DTOs.RegionDto>(region);
+            var updatedRegion = mapper.Map<RegionDto>(region);
             return CreatedAtAction(nameof(GetRegionById), new { id = updatedRegion.Id }, updatedRegion);
         }
-
-        #region Private methods
-
-        private bool ValidateRegionModel(Models.DTOs.AlterRegionDto regionData)
-        {
-            if (regionData == null)
-            {
-                ModelState.AddModelError(nameof(regionData), "Add region data is required.");
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(regionData.Code))
-            {
-                ModelState.AddModelError(nameof(regionData.Code), "The code can't be null or empty or white space.");
-            }
-            if (string.IsNullOrWhiteSpace(regionData.Name))
-            {
-                ModelState.AddModelError(nameof(regionData.Name), "The area can't be null or empty or white space.");
-            }
-            if (regionData.Area <= 0)
-            {
-                ModelState.AddModelError(nameof(regionData.Area), "The area can't be less or equal than 0.");
-            }
-            if (regionData.Lat <= 0)
-            {
-                ModelState.AddModelError(nameof(regionData.Lat), "The lat can't be less or equal than 0.");
-            }
-            if (regionData.Long <= 0)
-            {
-                ModelState.AddModelError(nameof(regionData.Long), "The long can't be less or equal than 0.");
-            }
-            if (regionData.Population < 0)
-            {
-                ModelState.AddModelError(nameof(regionData.Population), "The population can't be less than 0.");
-            }
-
-            if (ModelState.ErrorCount > 0)
-            {
-                return false;
-            }
-
-            return true;
-        }
-        #endregion
     }
 }
