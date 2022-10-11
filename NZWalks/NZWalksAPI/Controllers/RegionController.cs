@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NZWalksAPI.Models.Domain;
 using NZWalksAPI.Models.DTOs;
@@ -20,6 +21,7 @@ namespace NZWalksAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "reader")]
         public async Task<IActionResult> GetAllregions()
         {
             var regions = await regionRepository.GetAll();
@@ -48,6 +50,7 @@ namespace NZWalksAPI.Controllers
         [HttpGet]
         [Route("{id:guid}")]
         [ActionName("GetRegionById")]
+        [Authorize(Roles = "reader")]
         public async Task<IActionResult> GetRegionById(Guid id)
         {
             var region = await regionRepository.GetById(id);
@@ -62,6 +65,7 @@ namespace NZWalksAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "writer")]
         public async Task<IActionResult> AddRegion(AlterRegionDto newRegion)
         {
             //model validation using fluent validation
@@ -84,6 +88,7 @@ namespace NZWalksAPI.Controllers
 
         [HttpDelete]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
         public async Task<IActionResult> DeleteRegion(Guid id)
         {
             var region=await regionRepository.DeleteRegion(id);
@@ -96,6 +101,7 @@ namespace NZWalksAPI.Controllers
 
         [HttpPut]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
         public async Task<IActionResult> UpdateRegion([FromRoute] Guid id, [FromBody] AlterRegionDto newDataRegion)
         {
             //model validation using fluent validation

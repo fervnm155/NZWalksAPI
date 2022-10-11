@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using NZWalksAPI.Models.Domain;
 using NZWalksAPI.Models.DTOs;
 using NZWalksAPI.Repositories;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NZWalksAPI.Controllers
 {
@@ -24,6 +25,7 @@ namespace NZWalksAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "reader")]
         public async Task<IActionResult> GetAllWalks()
         {
             var walks = await walksRepository.GetAllWalks();
@@ -34,6 +36,7 @@ namespace NZWalksAPI.Controllers
         [HttpGet]
         [Route("{id:guid}")]
         [ActionName("GetWalkById")]
+        [Authorize(Roles = "reader")]
         public async Task<IActionResult> GetWalkById([FromRoute] Guid id)
         {
             var walk = await walksRepository.GetWalkById(id);
@@ -42,6 +45,7 @@ namespace NZWalksAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "writer")]
         public async Task<IActionResult> AddWalk([FromBody] AlterWalkDto newWalk)
         {
             //if (!await AlterWalkDtoIdsValidator.ValidateWalkModel(newWalk))
@@ -65,12 +69,18 @@ namespace NZWalksAPI.Controllers
             };
 
             walk = await walksRepository.AddWalk(walk);
+            if (walk == null)
+            {
+                return BadRequest();
+            }
+
             var addedwalk = mapper.Map<WalkDto>(walk);
             return CreatedAtAction(nameof(GetWalkById), new { id = addedwalk.Id }, addedwalk);
         }
 
         [HttpPut]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
         public async Task<IActionResult> ActionResult([FromRoute] Guid id, [FromBody] AlterWalkDto newDataWalk)
         {
             //if (!await AlterWalkDtoIdsValidator.ValidateWalkModel(newDataWalk))
@@ -106,12 +116,13 @@ namespace NZWalksAPI.Controllers
 
         [HttpDelete]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
         public async Task<IActionResult> DeleteWalk([FromRoute] Guid id)
         {
             var walk = await walksRepository.DeleteWalk(id);
             return CreatedAtAction(nameof(GetWalkById), new { id = walk.Id }, walk);
         }
-
+        
         //#region Private Methods
 
         //public async Task<bool> ValidateWalkModel(AlterWalkDto walkData)

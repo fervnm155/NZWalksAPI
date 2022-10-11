@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NZWalksAPI.Models.Domain;
 using NZWalksAPI.Models.DTOs;
 using NZWalksAPI.Repositories;
+using System.Data;
 
 namespace NZWalksAPI.Controllers
 {
@@ -20,6 +22,7 @@ namespace NZWalksAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "reader")]
         public async Task<IActionResult> GetAllWalkDiff()
         {
             var walkDiff = await walkDifficultyRepository.GetAllWalksDifficulties();
@@ -30,6 +33,7 @@ namespace NZWalksAPI.Controllers
         [HttpGet]
         [Route("{id:guid}")]
         [ActionName("GetWalkDiffById")]
+        [Authorize(Roles = "reader")]
         public async Task<IActionResult> GetWalkDiffById([FromRoute] Guid id)
         {
             var walkDiff = await walkDifficultyRepository.GetDifficultyById(id);
@@ -38,6 +42,7 @@ namespace NZWalksAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "writer")]
         public async Task<IActionResult> AddDifficulty([FromBody] AlterWalkDifficultyDto newDifficulty)
         {
             var difficulty = new WalkDifficulty()
@@ -52,6 +57,7 @@ namespace NZWalksAPI.Controllers
 
         [HttpPut]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
         public async Task<IActionResult> UpdateDifficulty([FromRoute] Guid id, [FromBody] AlterWalkDifficultyDto diffData)
         {
             var difficulty = new WalkDifficulty()
@@ -72,6 +78,7 @@ namespace NZWalksAPI.Controllers
 
         [HttpDelete]
         [Route("{id:guid}")]
+        [Authorize(Roles = "writer")]
         public async Task<IActionResult> DeleteDifficulty([FromRoute] Guid id)
         {
             var difficulty = await walkDifficultyRepository.DeleteDifficulty(id);
